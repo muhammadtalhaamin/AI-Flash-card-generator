@@ -85,9 +85,7 @@ Open the browser and go to `http://localhost:3000`. Ensure that everything is lo
 
 ## Screenshots
 
-![Screenshot 1](public/ssc1.png)
-![Screenshot 1](public/ssc2.png)
-![Screenshot 1](public/ssc3.png)
+<div style="display: flex; justify-content: space-between;"> <img src="public/ssc1.png" alt="Screenshot 1" style="width: 49%; border: 2px solid black;" /> <img src="public/ssc2.png" alt="Screenshot 2" style="width: 49%; border: 2px solid black;" /> </div> <div style="margin-top: 10px;"> <img src="public/ssc3.png" alt="Screenshot 3" style="width: 100%; border: 2px solid black;" /> </div>
 
 
 ## How to use the application
