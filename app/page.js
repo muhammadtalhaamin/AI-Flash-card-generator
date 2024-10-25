@@ -1,8 +1,8 @@
 import { Button } from "@/components/ui/button";
-import Image from "next/image";
+
 import Header from "./dashboard/_components/Header";
 import Link from 'next/link';
-import Footer from "@/components/ui/Footer";
+
 
 const Feature = ({ title, text }) => (
   <div className="flex flex-col items-center space-y-3">

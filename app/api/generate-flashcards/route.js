@@ -65,7 +65,6 @@ export async function POST(request) {
 
     // Read the file content
     const fileContent = await file.text();
-    console.log(fileContent);
     
     // Split content into manageable chunks
     const chunks = splitIntoChunks(fileContent);
