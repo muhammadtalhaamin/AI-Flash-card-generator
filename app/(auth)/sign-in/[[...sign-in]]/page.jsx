@@ -9,7 +9,7 @@ export default function Page() {
       <section className="flex-grow bg-white">
         <div className="lg:grid lg:h-full lg:grid-cols-12">
           {/* Left section with black background and text at the bottom */}
-          <section className="relative flex flex-col justify-end bg-gray-600 lg:col-span-5 lg:min-h-[calc(100vh-150px)] xl:col-span-6 p-12 items-end">
+          <section className="relative flex flex-col justify-end bg-gray-600 lg:col-span-5 lg:min-h-[calc(100vh-225px)] xl:col-span-6 p-12 items-end">
             <div className="lg:block">
               {/* Left-side content with text aligned at the bottom */}
               <h2 className="text-2xl font-bold text-white sm:text-3xl md:text-4xl">
@@ -30,8 +30,6 @@ export default function Page() {
           </main>
         </div>
       </section>
-
-      {/* Footer or other components would go below */}
     </div>
   );
 }

@@ -24,7 +24,7 @@ function splitIntoChunks(text, maxLength = 50000) {
 }
 
 // Function to generate flashcards for a chunk of text
-async function generateFlashcardsForChunk(chunk, numCards = 2) {
+async function generateFlashcardsForChunk(chunk, numCards = 4) {
   try {
     const completion = await openai.chat.completions.create({
       model: "chatgpt-4o-latest",
@@ -35,7 +35,7 @@ async function generateFlashcardsForChunk(chunk, numCards = 2) {
         },
         {
           role: "user",
-          content: `Please create ${numCards} flashcards from this Content using the topics discussed in it and return them in JSON format. Each flashcard should have a 'question' and a detailed 'answer' field. Make the flashcards concise and focused on key concepts. Content: ${chunk}`
+          content: `Please create ${numCards} flashcards from this Content using the topics discussed in it and return them in JSON format. Each flashcard should have a 'question' and a detailed 'answer' field. Provide responses in statements and avoid ordered or unordered bullets. Make the flashcards concise and focused on key concepts. Content: ${chunk}`
         }
       ],
       response_format: { type: "json_object" },

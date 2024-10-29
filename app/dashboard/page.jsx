@@ -51,6 +51,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [flashcards, setFlashcards] = useState([]);
+  const [isSubmitting, setIsSubmitting] = useState(false); // State to handle visibility of the upload section
 
   const handleFileChange = (event) => {
     const selectedFile = event.target.files[0];
@@ -88,7 +89,8 @@ export default function Dashboard() {
       }
 
       setFlashcards(data.flashcards);
-      
+      setIsSubmitting(true); // Hide upload section
+
       if (data.totalChunks > data.processedChunks) {
         setError(`Note: Only processed ${data.processedChunks} of ${data.totalChunks} sections due to size limitations. Consider uploading a smaller document for better results.`);
       }
@@ -109,85 +111,87 @@ export default function Dashboard() {
     setFile(null);
     setFlashcards([]);
     setError('');
+    setIsSubmitting(false); // Show upload section again
   };
 
   return (
-    
-    <div className="flex flex-col min-h-[calc(100vh-165px)]">
+    <div className="flex flex-col items-center justify-center">
       <div className="container mx-auto">
-        <h1 className="text-3xl font-bold mb-2">Study Dashboard</h1>
+        <h1 className="text-3xl font-bold mb-2 mt-4">Study Dashboard</h1>
         <h2 className="text-gray-500 mb-6">Generate flashcards from your documents</h2>
         
-        <div className="grid gap-6 md:grid-cols-2">
-          {/* Upload Section */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Upload Document</CardTitle>
-              <CardDescription>Upload a Text document(.txt) to generate flashcards</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-col items-center gap-4">
-                <div className="w-full">
-                  <label 
-                    htmlFor="file-upload" 
-                    className="flex flex-col items-center justify-center w-full h-28 border-2 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100"
+        {!isSubmitting ? (
+          <div className="grid gap-6 md:grid-cols-2 text-center mt-20 ">
+            {/* Upload Section */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Upload Document</CardTitle>
+                <CardDescription>Upload a Text document(.txt) to generate flashcards</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-col items-center gap-4">
+                  <div className="w-full">
+                    <label 
+                      htmlFor="file-upload" 
+                      className="flex flex-col items-center justify-center w-full h-28 border-2 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100"
+                    >
+                      <div className="flex flex-col items-center justify-center pt-4 pb-4">
+                        <Upload className="h-8 w-8 mb-2 text-gray-500" />
+                        <p className="text-sm text-gray-500">
+                          {file ? file.name : 'Click to upload or drag and drop'}
+                        </p>
+                      </div>
+                      <input
+                        id="file-upload"
+                        type="file"
+                        className="hidden"
+                        accept=".pdf,.doc,.docx,.txt"
+                        onChange={handleFileChange}
+                      />
+                    </label>
+                  </div>
+                  
+                  <Button 
+                    onClick={generateFlashcards}
+                    disabled={!file || loading}
+                    className="w-full"
                   >
-                    <div className="flex flex-col items-center justify-center pt-4 pb-4">
-                      <Upload className="h-8 w-8 mb-2 text-gray-500" />
-                      <p className="text-sm text-gray-500">
-                        {file ? file.name : 'Click to upload or drag and drop'}
-                      </p>
-                    </div>
-                    <input
-                      id="file-upload"
-                      type="file"
-                      className="hidden"
-                      accept=".pdf,.doc,.docx,.txt"
-                      onChange={handleFileChange}
-                    />
-                  </label>
+                    {loading ? (
+                      <>
+                        <Loader className="mr-2 h-4 w-4 animate-spin" />
+                        Generating Flashcards...
+                      </>
+                    ) : (
+                      <>
+                        <FileText className="mr-2 h-4 w-4" />
+                        Generate Flashcards
+                      </>
+                    )}
+                  </Button>
+
+                  <Button 
+                    onClick={resetAll}
+                    className="w-full"
+                    variant="secondary"
+                  >
+                    Reset
+                  </Button>
                 </div>
-                
-                <Button 
-                  onClick={generateFlashcards}
-                  disabled={!file || loading}
-                  className="w-full"
-                >
-                  {loading ? (
-                    <>
-                      <Loader className="mr-2 h-4 w-4 animate-spin" />
-                      Generating Flashcards...
-                    </>
-                  ) : (
-                    <>
-                      <FileText className="mr-2 h-4 w-4" />
-                      Generate Flashcards
-                    </>
-                  )}
-                </Button>
-
-                <Button 
-                  onClick={resetAll}
-                  className="w-full"
-                  variant="secondary"
-                >
-                  Reset
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Flashcards Display Section */}
+              </CardContent>
+            </Card>
+          </div>
+        ) : (
+          // Flashcards Display Section
           <div className="space-y-4">
             <Card>
-              <CardHeader className="pb-4">
+              <CardHeader className="pb-4 text-center">
                 <CardTitle>Generated Flashcards</CardTitle>
                 <CardDescription>Click on a card to reveal its answer</CardDescription>
               </CardHeader>
             </Card>
             
             {flashcards.length > 0 ? (
-              <div className="grid gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {flashcards.map((card, index) => (
                   <FlashCard
                     key={index}
@@ -205,8 +209,18 @@ export default function Dashboard() {
                 </CardContent>
               </Card>
             )}
+
+            <div className="flex justify-center mt-4 mb-4">    
+            <Button 
+              onClick={resetAll}
+              className="align-middle mt-4 mb-4 bg-black text-white"
+              variant="primary"
+            >
+              Submit Another Document
+            </Button>
           </div>
-        </div>
+          </div>
+        )}
 
         {error && (
           <Alert variant="destructive" className="mt-4">
@@ -215,6 +229,5 @@ export default function Dashboard() {
         )}
       </div>
     </div>
-    
   );
 }

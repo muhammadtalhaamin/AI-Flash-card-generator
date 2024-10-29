@@ -1,36 +1,120 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+## FlashCardGPT
+
+An AI-powered application that creates customized flashcards based on any uploaded text file, making studying easier and more effective.
+
+## Table of Contents
+
+- [Live Demo](#live-demo)
+- [Features](#features)
+- [Technologies Used](#technologies-used)
+- [Getting Started](#getting-started)
+  - [Prerequisites](#prerequisites)
+  - [How to run the project](#how-to-run-the-project)
+- [Screenshots](#screenshots)
+- [How to use the application](#how-to-use-the-application)
+- [Use case](#use-case)
+- [Contributing](#contributing)
+- [License](#license)
+- [Acknowledgements](#acknowledgements)
+- [Contact](#contact)
+
+## Live Demo
+
+https://ai-flash-card-generator-mauve.vercel.app/
+
+## Features
+- User-friendly access with gmail login or email/password authentication.
+- Generate flashcards by uploading text files.
+- Each flashcard contains AI-generated questions and answers for effective study.
+- Save, edit, and organize flashcards within custom folders.
+
+## Technologies Used
+- Next.js
+- React
+- OpenAI API Key
+- Clerk authentication
+
 
 ## Getting Started
 
-First, run the development server:
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+**Prerequisites**
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- Next.js
+- Clerk credentials
+- OpenAI API Key
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+**How to run the project**
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+1. Clone the repository:
+    ```bash
+    git clone https://github.com/0xmetaschool/FlashCardGPT.git
+    ```
 
-## Learn More
+2. Navigate to the project directory:
+    ```bash
+    cd FlashCardGPT 
+    ```
 
-To learn more about Next.js, take a look at the following resources:
+3. Install dependencies:
+    ```bash
+    npm install
+    ```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+4. Set up environment variables:
+   Create a .env file in the root directory as `.env.local` with the following environment variables:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+    ```bash
+    NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=
+    CLERK_SECRET_KEY=
 
-## Deploy on Vercel
+    NEXT_PUBLIC_CLERK_SIGN_IN_URL=
+    NEXT_PUBLIC_CLERK_SIGN_UP_URL=
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+    OPENAI_API_KEY=
+    ```
+   
+5. Run the development server:
+    ```bash
+    npm run dev
+    ```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+6. Run the development server:
+
+Open the browser and go to `http://localhost:3000`. Ensure that everything is loading and the live preview works as expected.
+
+## Screenshots
+
+<div style="display: flex; justify-content: space-between;"> <img src="public/ssc1.png" alt="Screenshot 1" style="width: 49%; border: 2px solid black;" /> <img src="public/ssc2.png" alt="Screenshot 2" style="width: 49%; border: 2px solid black;" /> </div> <div style="margin-top: 10px;"> <img src="public/ssc3.png" alt="Screenshot 3" style="width: 100%; border: 2px solid black;" /> </div>
+
+
+## How to use the application
+
+1. Sign-in using your Google account.
+2. Upload a document to generate flashcards.
+3. Click on any flashcard to view the answer.
+4. Review flashcards through the dashboard, and reuse as needed.
+
+
+## Contributing
+
+We love contributions! Here's how you can help make the AI-powered FinanceGuru even better:
+
+1. Fork the project (`gh repo fork https://github.com/0xmetaschool/FlashCardGPT.git`)
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+## License
+This project is licensed under the MIT License - see the [LICENSE file](./LICENSE) for details.
+
+
+## Acknowledgments
+
+- OpenAI for powering the flashcard generation
+- Clerk for login and authentication
+
+## Contact
+
+Please open an issue in the GitHub repository for any queries or support.
