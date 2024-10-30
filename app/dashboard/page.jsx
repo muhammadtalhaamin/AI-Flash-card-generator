@@ -5,13 +5,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
-const FlashCard = ({ question, answer }) => {
+const FlashCard = ({ question, answer, index }) => {
   const [isFlipped, setIsFlipped] = useState(false);
 
   const handleClick = () => {
     setIsFlipped(!isFlipped);
   };
 
+  // Flash card section
   return (
     <div 
       className="relative h-48 w-full perspective-1000"
@@ -24,7 +25,7 @@ const FlashCard = ({ question, answer }) => {
         <div className="absolute w-full h-full backface-hidden">
           <div className="p-6 rounded-lg border bg-card h-full flex flex-col justify-between">
             <div className="overflow-auto">
-              <h3 className="font-semibold text-lg mb-2">Question</h3>
+              <h3 className="font-semibold text-lg mb-2">Question {index + 1}</h3>
               <p className="text-gray-600">{question}</p>
             </div>
             <p className="text-sm text-gray-400 text-center">Click to reveal answer</p>
@@ -51,17 +52,17 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [flashcards, setFlashcards] = useState([]);
-  const [isSubmitting, setIsSubmitting] = useState(false); // State to handle visibility of the upload section
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleFileChange = (event) => {
     const selectedFile = event.target.files[0];
-    const validFileTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'text/plain'];
+    const validFileTypes = ['text/plain'];
     
     if (selectedFile && validFileTypes.includes(selectedFile.type)) {
       setFile(selectedFile);
       setError('');
     } else {
-      setError('Please upload a Text document');
+      setError('Please upload a Text document (.txt file)');
       setFile(null);
     }
   };
@@ -89,7 +90,7 @@ export default function Dashboard() {
       }
 
       setFlashcards(data.flashcards);
-      setIsSubmitting(true); // Hide upload section
+      setIsSubmitting(true);
 
       if (data.totalChunks > data.processedChunks) {
         setError(`Note: Only processed ${data.processedChunks} of ${data.totalChunks} sections due to size limitations. Consider uploading a smaller document for better results.`);
@@ -111,18 +112,18 @@ export default function Dashboard() {
     setFile(null);
     setFlashcards([]);
     setError('');
-    setIsSubmitting(false); // Show upload section again
+    setIsSubmitting(false);
   };
-
+   
+  // Upload file section
   return (
-    <div className="flex flex-col items-center justify-center">
+    <div className="flex flex-col items-center ">
       <div className="container mx-auto">
         <h1 className="text-3xl font-bold mb-2 mt-4">Study Dashboard</h1>
-        <h2 className="text-gray-500 mb-6">Generate flashcards from your documents</h2>
+        <h2 className="text-gray-500 mb-6 ">Generate flashcards from your documents</h2>
         
         {!isSubmitting ? (
-          <div className="grid gap-6 md:grid-cols-2 text-center mt-20 ">
-            {/* Upload Section */}
+          <div className="flex flex-col items-center justify-center pt-24">
             <Card>
               <CardHeader>
                 <CardTitle>Upload Document</CardTitle>
@@ -181,7 +182,6 @@ export default function Dashboard() {
             </Card>
           </div>
         ) : (
-          // Flashcards Display Section
           <div className="space-y-4">
             <Card>
               <CardHeader className="pb-4 text-center">
@@ -197,6 +197,7 @@ export default function Dashboard() {
                     key={index}
                     question={card.question}
                     answer={card.answer}
+                    index={index} // Passing the index
                   />
                 ))}
               </div>
