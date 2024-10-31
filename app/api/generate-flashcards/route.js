@@ -1,53 +1,224 @@
 import { NextResponse } from 'next/server';
 import OpenAI from 'openai';
+import fs from 'fs';
+import path from 'path';
+import os from 'os';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-// Function to split text into chunks
-function splitIntoChunks(text, maxLength = 50000) {
-  const sentences = text.match(/[^.!?]+[.!?]+/g) || [];
-  const chunks = [];
-  let currentChunk = '';
-
-  for (const sentence of sentences) {
-    if ((currentChunk + sentence).length <= maxLength) {
-      currentChunk += sentence;
-    } else {
-      if (currentChunk) chunks.push(currentChunk.trim());
-      currentChunk = sentence;
-    }
-  }
-  if (currentChunk) chunks.push(currentChunk.trim());
-  return chunks;
-}
-
-// Function to generate flashcards for a chunk of text
-async function generateFlashcardsForChunk(chunk, numCards = 4) {
+async function getOrCreateAssistant() {
   try {
-    const completion = await openai.chat.completions.create({
-      model: "chatgpt-4o-latest",
-      messages: [
-        {
-          role: "system",
-          content: "You are a helpful assistant that creates educational flashcards based on the provided text. Generate flashcards in JSON format with 'question' and 'answer' fields."
-        },
-        {
-          role: "user",
-          content: `Please create ${numCards} flashcards from this Content using the topics discussed in it and return them in JSON format. Each flashcard should have a 'question' and a detailed 'answer' field. Provide responses in statements and avoid ordered or unordered bullets. Make the flashcards concise and focused on key concepts. Content: ${chunk}`
-        }
-      ],
-      response_format: { type: "json_object" },
-      max_tokens: 1000,
-      temperature: 0.7,
+    const assistants = await openai.beta.assistants.list({
+      limit: 1,
+      order: 'desc'
     });
 
-    const response = JSON.parse(completion.choices[0].message.content);
-    return response.flashcards || [];
+    const existingAssistant = assistants.data.find(
+      (assistant) => assistant.name === 'Flashcard Generator'
+    );
+
+    if (existingAssistant) {
+      return await openai.beta.assistants.update(existingAssistant.id, {
+        name: 'Flashcard Generator',
+        instructions: `You are a flashcard generation assistant. Your task is to analyze the provided content and generate flashcards.
+        IMPORTANT: You must respond ONLY with a JSON array of flashcard objects. Each object must have exactly two fields:
+        - "question": the flashcard question
+        - "answer": the corresponding answer
+        
+        Example format:
+        [
+          {
+            "question": "What is example question 1?",
+            "answer": "This is example answer 1"
+          },
+          {
+            "question": "What is example question 2?",
+            "answer": "This is example answer 2"
+          }
+        ]
+        
+        Do not include any introductory text, explanations, or other content. Only output valid JSON in the exact format shown above.`,
+        model: 'gpt-4-turbo-preview',
+        tools: [{ type: "file_search" }]
+      });
+    }
+
+    return await openai.beta.assistants.create({
+      name: 'Flashcard Generator',
+      instructions: `You are a flashcard generation assistant. Your task is to analyze the provided content and generate flashcards.
+      IMPORTANT: You must respond ONLY with a JSON array of flashcard objects. Each object must have exactly two fields:
+      - "question": the flashcard question
+      - "answer": the corresponding answer
+      
+      Example format:
+      [
+        {
+          "question": "What is example question 1?",
+          "answer": "This is example answer 1"
+        },
+        {
+          "question": "What is example question 2?",
+          "answer": "This is example answer 2"
+        }
+      ]
+      
+      Do not include any introductory text, explanations, or other content. Only output valid JSON in the exact format shown above.`,
+      model: 'gpt-4-turbo-preview',
+      tools: [{ type: 'retrieval' }]
+    });
   } catch (error) {
-    console.error('Error generating flashcards for chunk:', error);
-    return [];
+    console.error('Error creating/getting assistant:', error);
+    throw error;
+  }
+}
+
+async function generateFlashcardsWithAssistant(vectorStoreId) {
+  try {
+    const assistant = await getOrCreateAssistant();
+    // Update assistant with vector store
+    await openai.beta.assistants.update(assistant.id, {
+      tool_resources: { 
+        file_search: { 
+          vector_store_ids: [vectorStoreId] 
+        } 
+      }
+    });
+
+    const thread = await openai.beta.threads.create();
+
+    await openai.beta.threads.messages.create(thread.id, {
+      role: 'user',
+      content: `Generate flashcards from the uploaded content. IMPORTANT: Respond ONLY with a JSON array of flashcard objects. Each object must have "question" and "answer" fields. Do not include any other text or explanations.`
+    });
+
+    const run = await openai.beta.threads.runs.create(thread.id, {
+      assistant_id: assistant.id,
+      instructions: `Create flashcards from the content. REMEMBER: Your response must be ONLY a JSON array of objects with "question" and "answer" fields. No other text or content.`
+    });
+
+    // Poll for completion
+    let runStatus = await openai.beta.threads.runs.retrieve(thread.id, run.id);
+    const maxAttempts = 60;
+    let attempts = 0;
+
+    while (runStatus.status !== 'completed' && attempts < maxAttempts) {
+      if (runStatus.status === 'failed') {
+        throw new Error('Assistant run failed: ' + runStatus.last_error);
+      }
+      
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      runStatus = await openai.beta.threads.runs.retrieve(thread.id, run.id);
+      attempts++;
+    }
+
+    if (attempts >= maxAttempts) {
+      throw new Error('Assistant run timed out');
+    }
+
+    const messages = await openai.beta.threads.messages.list(thread.id);
+    const assistantMessage = messages.data.find(msg => msg.role === 'assistant');
+
+    if (!assistantMessage) {
+      throw new Error('No response from assistant');
+    }
+
+    // Get the response content and clean it
+    let content = assistantMessage.content[0].text.value;
+    
+    // Try to extract JSON if it's wrapped in code blocks
+    const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+    if (jsonMatch) {
+      content = jsonMatch[1];
+    }
+
+    // Clean the content and try to parse
+    content = content.trim();
+    
+    try {
+      const flashcards = JSON.parse(content);
+
+      // Validate flashcard format
+      if (!Array.isArray(flashcards)) {
+        throw new Error('Response is not an array');
+      }
+
+      flashcards.forEach((card, index) => {
+        if (!card.question || !card.answer) {
+          throw new Error(`Flashcard at index ${index} is missing question or answer`);
+        }
+      });
+
+      return flashcards;
+
+    } catch (error) {
+      console.error('Error parsing assistant response. Response content:', content);
+      throw new Error(`Failed to parse flashcards: ${error.message}`);
+    }
+
+  } catch (error) {
+    console.error('Error in generateFlashcardsWithAssistant:', error);
+    throw error;
+  }
+}
+
+
+
+async function createVectorStoreAndUploadFile(file) {
+  try {
+    const vectorStore = await openai.beta.vectorStores.create({
+      name: "Flashcard Content Vector Store",
+    });
+
+    if (!vectorStore || !vectorStore.id) {
+      throw new Error('Failed to create a vector store.');
+    }
+
+    const tempDir = os.tmpdir();
+    const tempFilePath = path.join(tempDir, 'content.txt');
+    const fileContent = await file.text();
+    await fs.promises.writeFile(tempFilePath, fileContent);
+
+    const fileObject = await openai.files.create({
+      file: fs.createReadStream(tempFilePath),
+      purpose: 'assistants',
+    });
+
+    const fileBatch = await openai.beta.vectorStores.fileBatches.create(
+      vectorStore.id,
+      {
+        file_ids: [fileObject.id]
+      }
+    );
+
+    let status = await openai.beta.vectorStores.fileBatches.retrieve(
+      vectorStore.id,
+      fileBatch.id
+    );
+
+    const maxAttempts = 30;
+    let attempts = 0;
+    while (status.status === 'processing' && attempts < maxAttempts) {
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      status = await openai.beta.vectorStores.fileBatches.retrieve(
+        vectorStore.id,
+        fileBatch.id
+      );
+      attempts++;
+    }
+
+    await fs.promises.unlink(tempFilePath);
+
+    if (status.status === 'failed' || attempts >= maxAttempts) {
+      throw new Error('File processing failed or timed out');
+    }
+
+    return vectorStore.id;
+
+  } catch (error) {
+    console.error('Error creating vector store or uploading files:', error);
+    throw error;
   }
 }
 
@@ -63,45 +234,29 @@ export async function POST(request) {
       );
     }
 
-    // Read the file content
-    const fileContent = await file.text();
+    const vectorStoreId = await createVectorStoreAndUploadFile(file);
+    console.log('Vector store created successfully with ID:', vectorStoreId);
     
-    // Split content into manageable chunks
-    const chunks = splitIntoChunks(fileContent);
-    
-    // Limit the number of chunks to process (to avoid rate limits)
-    const chunksToProcess = chunks.slice(0, 5); // Process max 5 chunks
-    
-    // Generate flashcards for each chunk
-    const allFlashcards = [];
-    
-    // Process chunks sequentially to avoid rate limits
-    for (const chunk of chunksToProcess) {
-      const flashcardsForChunk = await generateFlashcardsForChunk(chunk);
-      allFlashcards.push(...flashcardsForChunk);
-    }
+    const flashcards = await generateFlashcardsWithAssistant(vectorStoreId);
+    console.log('Flashcards generated successfully:', flashcards.length);
 
-    // Limit total number of flashcards
-    const limitedFlashcards = allFlashcards.slice(0, 10); // Return max 10 flashcards
-
-    return NextResponse.json({ 
-      flashcards: limitedFlashcards,
-      totalChunks: chunks.length,
-      processedChunks: chunksToProcess.length
+    return NextResponse.json({
+      flashcards,
+      totalChunks: 1,
+      processedChunks: 1,
     });
 
   } catch (error) {
-    console.error('Error in generate-flashcards:', error);
-    
-    // Handle specific error types
-    if (error.code === 'rate_limit_exceeded') {
+    console.error('Full error details:', error);
+
+    if (error.message.includes('rate_limit')) {
       return NextResponse.json(
-        { error: 'Rate limit exceeded. Please try again with a smaller document or wait a few minutes.' },
+        { error: 'Rate limit exceeded. Please try again in a few minutes.' },
         { status: 429 }
       );
     }
 
-    if (error.code === 'context_length_exceeded') {
+    if (error.message.includes('context_length_exceeded') || error.message.includes('maximum context length')) {
       return NextResponse.json(
         { error: 'Document is too large. Please try with a smaller document.' },
         { status: 413 }

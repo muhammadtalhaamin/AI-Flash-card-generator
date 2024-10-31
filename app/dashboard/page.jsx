@@ -57,7 +57,8 @@ export default function Dashboard() {
   const handleFileChange = (event) => {
     const selectedFile = event.target.files[0];
     const validFileTypes = ['text/plain'];
-    
+
+    // Checking uploaded file type
     if (selectedFile && validFileTypes.includes(selectedFile.type)) {
       setFile(selectedFile);
       setError('');
@@ -197,7 +198,7 @@ export default function Dashboard() {
                     key={index}
                     question={card.question}
                     answer={card.answer}
-                    index={index} // Passing the index
+                    index={index} 
                   />
                 ))}
               </div>
