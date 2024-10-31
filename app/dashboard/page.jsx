@@ -56,14 +56,17 @@ export default function Dashboard() {
 
   const handleFileChange = (event) => {
     const selectedFile = event.target.files[0];
-    const validFileTypes = ['text/plain'];
+    const validFileTypes = ['text/plain' ,
+      'application/pdf',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/msword'];
 
     // Checking uploaded file type
     if (selectedFile && validFileTypes.includes(selectedFile.type)) {
       setFile(selectedFile);
       setError('');
     } else {
-      setError('Please upload a Text document (.txt file)');
+      setError('Please upload a valid file type');
       setFile(null);
     }
   };
@@ -128,7 +131,7 @@ export default function Dashboard() {
             <Card>
               <CardHeader>
                 <CardTitle>Upload Document</CardTitle>
-                <CardDescription>Upload a Text document(.txt) to generate flashcards</CardDescription>
+                <CardDescription>Upload a Text, PDF or word document to generate flashcards</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="flex flex-col items-center gap-4">

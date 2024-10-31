@@ -22,7 +22,7 @@ const UpgradePage = () => {
             <div className="space-y-4 mt-4 text-justify">
               <p className="text-gray-600">- 1 document upload</p>
               <p className="text-gray-600">- Basic flashcards</p>
-              <p className="text-gray-600">- Upload only text format documents</p>
+              <p className="text-gray-600">- Upload only basic file format documents</p>
             </div>
             <button 
               className="mt-6 px-4 py-2 bg-gray-300 text-black rounded-lg cursor-not-allowed" 
@@ -39,7 +39,7 @@ const UpgradePage = () => {
             <div className="space-y-4 mt-4 text-left">
               <p className="text-gray-600">- 5 document uploads</p>
               <p className="text-gray-600">- Advanced flashcard generation</p>
-              <p className="text-gray-600">- Upload pdf or word file formats as well</p>
+              <p className="text-gray-600">- Upload multiple file formats as well</p>
             </div>
             <button className="mt-6 px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-500 transition"
                 onClick={() => alert("This will be available in the next release")}>

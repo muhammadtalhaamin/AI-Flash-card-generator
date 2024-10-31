@@ -34,7 +34,7 @@ export default function Home() {
       <section className="flex flex-1 items-center justify-center z-50 py-16">
         <div className="text-center max-w-screen-lg px-4">
           <h1 className="mb-4 text-3xl md:text-5xl lg:text-6xl font-extrabold tracking-tight leading-tight text-gray-900 dark:text-white">
-            Upload a Text Document and Generate Flashcards Instantly
+            Upload a Document and Generate Flashcards Instantly
           </h1>
           
           <p className="mb-8 text-lg md:text-xl text-gray-500 dark:text-gray-400">
@@ -57,7 +57,7 @@ export default function Home() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
               <Feature title="Upload Documents" text="Easily upload documents and extract key information." />
               <Feature title="Generate Flashcards" text="Turn your content into interactive flashcards with AI-driven insights." />
-              <Feature title="Customize and Study" text="Edit, customize, and study flashcards tailored to your learning." />
+              <Feature title="Customize and Study" text="Customize, and study flashcards tailored to your learning." />
             </div>
           </div>
         </div>
@@ -77,7 +77,7 @@ export default function Home() {
                   <div className="space-y-4 mt-4 text-left">
                     <p className="text-gray-600">1 document upload</p>
                     <p className="text-gray-600">Basic flashcards</p>
-                    <p className="text-gray-600">Only text file formats are supported</p>
+                    <p className="text-gray-600">Only basic file formats are supported</p>
                   </div>
                 </div>
               </PriceWrapper>
@@ -89,7 +89,7 @@ export default function Home() {
                   <div className="space-y-4 mt-4 text-left">
                     <p className="text-gray-600">5 document uploads</p>
                     <p className="text-gray-600">Advanced flashcard generation</p>
-                    <p className="text-gray-600">Upload pdf and doc file formats</p>
+                    <p className="text-gray-600">Upload multiple file formats</p>
                   </div>
                 </div>
               </PriceWrapper>
@@ -101,7 +101,7 @@ export default function Home() {
                   <div className="space-y-4 mt-4 text-left">
                     <p className="text-gray-600">Unlimited document uploads</p>
                     <p className="text-gray-600">Full custom flashcard solutions</p>
-                    <p className="text-gray-600">Unlimited upload file formats supported</p>
+                    <p className="text-gray-600">Unlimited file formats are supported</p>
                   </div>
                 </div>
               </PriceWrapper>

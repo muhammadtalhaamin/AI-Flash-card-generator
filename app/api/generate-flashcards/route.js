@@ -4,10 +4,12 @@ import fs from 'fs';
 import path from 'path';
 import os from 'os';
 
+// Accesing API key from environment variables
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
+// Creating an OpenAI assistant
 async function getOrCreateAssistant() {
   try {
     const assistants = await openai.beta.assistants.list({
@@ -74,6 +76,7 @@ async function getOrCreateAssistant() {
   }
 }
 
+// Function to generate Flashcards based on 'vectorStoreId' and 'assistant id'
 async function generateFlashcardsWithAssistant(vectorStoreId) {
   try {
     const assistant = await getOrCreateAssistant();
@@ -85,7 +88,8 @@ async function generateFlashcardsWithAssistant(vectorStoreId) {
         } 
       }
     });
-
+    
+    // Creating threads
     const thread = await openai.beta.threads.create();
 
     await openai.beta.threads.messages.create(thread.id, {
@@ -164,7 +168,7 @@ async function generateFlashcardsWithAssistant(vectorStoreId) {
 }
 
 
-
+// Creating vector store and upload file to it
 async function createVectorStoreAndUploadFile(file) {
   try {
     const vectorStore = await openai.beta.vectorStores.create({
@@ -175,9 +179,11 @@ async function createVectorStoreAndUploadFile(file) {
       throw new Error('Failed to create a vector store.');
     }
 
+    
+    // Creating a temporary path to store file
     const tempDir = os.tmpdir();
-    const tempFilePath = path.join(tempDir, 'content.txt');
-    const fileContent = await file.text();
+    const tempFilePath = path.join(tempDir, file.name);
+    const fileContent = Buffer.from(await file.arrayBuffer());
     await fs.promises.writeFile(tempFilePath, fileContent);
 
     const fileObject = await openai.files.create({
@@ -233,10 +239,12 @@ export async function POST(request) {
         { status: 400 }
       );
     }
-
+    
+    // Creating vector store an uploading file
     const vectorStoreId = await createVectorStoreAndUploadFile(file);
     console.log('Vector store created successfully with ID:', vectorStoreId);
     
+    // Generating flashcards
     const flashcards = await generateFlashcardsWithAssistant(vectorStoreId);
     console.log('Flashcards generated successfully:', flashcards.length);
 
