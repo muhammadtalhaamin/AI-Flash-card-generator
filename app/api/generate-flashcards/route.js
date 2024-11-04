@@ -21,32 +21,6 @@ async function getOrCreateAssistant() {
       (assistant) => assistant.name === 'Flashcard Generator'
     );
 
-    if (existingAssistant) {
-      return await openai.beta.assistants.update(existingAssistant.id, {
-        name: 'Flashcard Generator',
-        instructions: `You are a flashcard generation assistant. Your task is to analyze the provided content and generate flashcards.
-        IMPORTANT: You must respond ONLY with a JSON array of flashcard objects. Each object must have exactly two fields:
-        - "question": the flashcard question
-        - "answer": the corresponding answer
-        
-        Example format:
-        [
-          {
-            "question": "What is example question 1?",
-            "answer": "This is example answer 1"
-          },
-          {
-            "question": "What is example question 2?",
-            "answer": "This is example answer 2"
-          }
-        ]
-        
-        Do not include any introductory text, explanations, or other content. Only output valid JSON in the exact format shown above.`,
-        model: 'gpt-4-turbo-preview',
-        tools: [{ type: "file_search" }]
-      });
-    }
-
     return await openai.beta.assistants.create({
       name: 'Flashcard Generator',
       instructions: `You are a flashcard generation assistant. Your task is to analyze the provided content and generate flashcards.
@@ -68,7 +42,7 @@ async function getOrCreateAssistant() {
       
       Do not include any introductory text, explanations, or other content. Only output valid JSON in the exact format shown above.`,
       model: 'gpt-4-turbo-preview',
-      tools: [{ type: 'retrieval' }]
+      tools: [{ type: 'file_search' }]
     });
   } catch (error) {
     console.error('Error creating/getting assistant:', error);
